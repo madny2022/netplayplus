@@ -1,223 +1,641 @@
-import csv
-import json
-import requests
-import logging
+import time
+from importlib import reload
+from sqlite3 import time
+from tkinter import ROUND
+from typing import Literal
+from bs4 import BeautifulSoup
 import telebot
-import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from turtle import clear
 from time import sleep
-from datetime import datetime
-from notifypy import notify
-from pushbullet import Pushbullet
+import bd
+import requests
 
 
-def results():
-    data = pd.read_csv('count.csv')
-    wins = sum(n for n in data.win)
-    losses = sum(n for n in data.loss)
-    prim_tent = sum(n for n in data.prim_tent)
-    prim_gale = sum(n for n in data.prim_gale)
-    seg_gale = sum(n for n in data.seg_gale)
-    porcentagem = round((wins - losses) / wins * 100, 2)
+api_key = '5416385907:AAHtSsSWDmpoSS3ud-qmsSWQEg9_TEE4EK0' #ID DO SEU BOT DO BOTFATHER
+chat_id = '-749878368'#ID DO GRUPO
 
-    return {'wins': wins, 'losses': losses, 'prim_tent': prim_tent, 'prim_gale': prim_gale, 'seg_gale': seg_gale, 'porcentagem': porcentagem}
+bot = telebot.TeleBot(token=api_key)
 
+Options = webdriver.ChromeOptions()
+Options.add_argument('--headless')
+nav = webdriver.Chrome(service=Service(ChromeDriverManager().install()), chrome_options=Options)
 
-def count(time, win:int, loss:int, prim_tent:int, prim_gale:int, seg_gale:int,bot_telegram):
-    with open('count.csv', 'a+') as file:
-        writer = csv.writer(file)
-        writer.writerow([time, win, loss, prim_tent, prim_gale, seg_gale])
-        #bot_telegram.send_message('-749878368', [time, win, loss, prim_tent, prim_gale, seg_gale])
+nav.get('https://blaze.com/pt/games/double')
 
+def possivel_entrada():
 
-# desktop notification settings
-def desktop_notification(message):
-    notification = Notify()
-    notification.title = 'Blaze'
-    notification.message = message
-    notification.icon = r'C:\Users\User\Downloads\python projects\blaze_bot\blaze-icon.png'
-    notification.send()
+    message_id = bot.send_sticker(chat_id=chat_id, sticker=("CAACAgEAAxkBAAEBbrBjYpHFtAQtQBsIOMrgYW35uffdeAACBgIAAkuSGUcJS4mJ8L-H_yoE")).message_id
+    bd.mensage_ids = message_id
+    bd.mensage_delete = True
+    return
 
-# phone notifications
-def bot_msg(title, message):
-    pb = Pushbullet('o.9mKgLukDRUkGzzaWN9DIC0aqy3ixNHKj')
-    pb.push_note(title, message)
+def deletar_alertas():
+    if bd.mensage_delete == True:
+        bot.delete_message(chat_id=chat_id, message_id=bd.mensage_ids)
+        bd.mensage_delete = False
 
-# basic api request
-def roulette_preview():
-    global last_doubles
-    last_doubles = last_doubles[1:]
-    colored_string = ', '.join([
-        f"\033[10;40m {item[0]} \033[m" if item[1] == "preto"
-        else f"\033[10;41m {item[0]} \033[m" if item[1] == "vermelho"
-        else f"\033[10;47m {item[0]} \033[m" for item in last_doubles])
-    print(f"\r{colored_string}", end="")
+def ALERT_GALE1(): 
+        message_id = bot.send_sticker(chat_id, 
+        sticker='CAACAgEAAxkBAAEBbqxjYpHDpg_HadGTviKqd21FeXg30QACQAIAAlMKGUcVRCz3XSQs5SoE').message_id
+        bd.message_ids1 = message_id
+        bd.mensage_delete1 = True
+        return  
 
+def DELET_GALE1():
+        if bd.mensage_delete1 == True:
+            bot.delete_message(chat_id=chat_id, message_id=bd.message_ids1)
+            bd.mensage_delete1 = False
 
-def get_color(number):
-    colors = {
-        0: "branco",
-        1: "vermelho",
-        2: "preto"
-    }
-    return colors.get(number, None)
+def ALERT_GALE2():
+        message_id = bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbqRjYo-0I-JwoJMDe7wmilxpYBTmZwACAwMAAhllGEeZfFtrCUMniyoE').message_id
+        bd.message_ids1 = message_id
+        bd.mensage_delete1 = True
+        return  
 
-def request():
-    try:
-        while True:  
-            req = requests.get('https://blaze.com/api/roulette_games/recent', headers={"User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36"})
-            if req.status_code == 200:
-                break
-        output = json.loads(req.text)
-        list_past_results = [{"color": "branco" if i["color"] == 0 else "vermelho" if i["color"] == 1 else "preto",
-                     "value": i["roll"]} for i in output]
-        return list_past_results
-    except: pass
+def DELET_GALE2():
+        if bd.mensage_delete1 == True:
+            bot.delete_message(chat_id=chat_id, message_id=bd.message_ids1)
+            bd.mensage_delete1 = False
 
-# main function
-def main_request(bot_telegram):
-    logging.basicConfig(filename='tracker.log',level=logging.DEBUG, format = '%(asctime)s:%(message)s')
-    while True:
+def qualnum(x):
+
+        if x == '0':
+            return 0
+
+        if x == '1':
+            return 1
+
+        if x == '2':
+            return 2
+
+        if x == '3':
+            return 3
+
+        if x == '4':
+            return 4
+
+        if x == '5':
+            return 5
+
+        if x == '6':
+            return 6
+
+        if x == '7':
+            return 7
+
+        if x == '8':
+            return 8
+
+        if x == '9':
+            return 9
+
+        if x == '10':
+            return 10
+
+        if x == '11':
+            return 11
+
+        if x == '12':
+            return 12
+
+        if x == '13':
+            return 13
+
+        if x == '14':
+            return 14
+
+def qualcor(x):
+
+        if x == '0':
+            return '⚪️'
+
+        if x == '1':
+            return '🔴'
+
+        if x == '2':
+            return '🔴'
+
+        if x == '3':
+            return '🔴'
+
+        if x == '4':
+            return '🔴'
+
+        if x == '5':
+            return '🔴'
+
+        if x == '6':
+            return '🔴'
+
+        if x == '7':
+            return '🔴'
+
+        if x == '8':
+            return '⚫️'
+
+        if x == '9':
+            return '⚫️'
+
+        if x == '10':
+            return '⚫️'
+
+        if x == '11':
+            return '⚫️'
+
+        if x == '12':
+            return '⚫️'
+
+        if x == '13':
+            return '⚫️'
+
+        if x == '14':
+            return '⚫️'
+
+def reset():
+    bd.estrategy_name = 'TRUE'
+    bd.direction_color = 'NULL'
+    bd.analisar = 0
+    bd.gale_atual = 0
+    
+def martingales(): 
+
+    def very_gale(num):
+
+        if num[0:1] == [0]:#win branco
+            print('(BRANCO) (BRANCO-GALE-1) (BRANCO-GALE-2)')
+
+            if bd.gale_atual == 0:
+                print('⚪️SEM GALE✅')
+                bd.branco += 1
+                bd.total += 1
+                bd.Win_seguidos += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbphjYo4nQXh717fBO2wJOkolY85fWAAC6QEAAgIQEEdtU5TR7hzu4yoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                        
+                        \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+   
+    
+                        ''')
+                reset()
+                return    
+
+            if bd.gale_atual == 1:
+                print('⚪️GALE1✅')
+                bd.branco += 1
+                bd.total += 1
+                bd.Win_seguidos += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbphjYo4nQXh717fBO2wJOkolY85fWAAC6QEAAgIQEEdtU5TR7hzu4yoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                        
+                        \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                        ''')
+                reset()
+                return     
+
+            if bd.gale_atual == 2:
+                print('⚪️GALE2✅')
+                bd.branco += 1
+                bd.total += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbphjYo4nQXh717fBO2wJOkolY85fWAAC6QEAAgIQEEdtU5TR7hzu4yoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                        
+                        \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                        ''')
+                reset()
+                return    
+
+        if num[0:1] > [0] and num[0:1] <= [7] and bd.direction_color == '🔴':#win vermelho
+            if bd.gale_atual == 0:
+                print('🔴SEM GALE✅')
+                bd.win += 1
+                bd.total += 1
+                bd.Win_seguidos += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbpBjYo4dLLNBnQd-fNApxnLRgVQ0QAAC9AEAAkgQEEdwvVFrbdg_pSoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                            
+                            \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                            ''')
+                reset()
+                return  
+
+            if bd.gale_atual == 1:
+                print('🔴GALE1✅')
+                bd.gale1 += 1
+                bd.total += 1
+                bd.Win_seguidos += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbpBjYo4dLLNBnQd-fNApxnLRgVQ0QAAC9AEAAkgQEEdwvVFrbdg_pSoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                            
+                            \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                            ''')
+                reset()
+                return  
+
+            if bd.gale_atual == 2:
+                print('🔴GALE2✅')
+                bd.gale2 += 1
+                bd.total += 1
+                bd.Win_seguidos += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbpBjYo4dLLNBnQd-fNApxnLRgVQ0QAAC9AEAAkgQEEdwvVFrbdg_pSoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                            
+                            \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                            ''')
+                reset()
+                return        
         
-        list_past_results = request()
-        # if list_past_results[0]['color'] =='1' and list_past_results[1]['color']=='2' and list_past_results[1]['numero']==14
-        #   # estrategia2(list_past_results,bot_telegram)
-        # elif            
-        if list_past_results[0]['color'] == "vermelho" and list_past_results[1]['color'] == "preto":
-            return print('⚫️/🔴 ESTRATEGIA 2📌'),apostar(list_past_results, bot_telegram)
-
-        print('Request feito:', datetime.now())
-        sleep(1)
-
-# 
-
-def apostar(lista, bot_telegram):
-
-    #elif
-    if lista[0]['color']:
-        # desktop_notification('Apostar no vermelho e no branco')
-        # bot_msg('Blaze', 'Apostar no vermelho e no branco.')
-        while True:
-            try:
-                bot_telegram.send_message('-749878368', '\U0001f916 Robô da Safablaze \U0001f916 \n\nApostar no vermelho e no branco. \U0001f534 \u26aa')
-                break
-            except Exception as e:
-                print('Erro:', e)
-    #elif
-
-
-    win = 0
-    loss = 0
-    prim_tent = 0
-    prim_gale = 0
-    seg_gale = 0
-
-
-    # checking if you won
-    while True:
-        new_list = request()
-        if lista != new_list:
-            list = new_list
-            break
-
-    if list[0]['color'] == list[1]['color']:
-        prim_tent += 1
-        # desktop_notification('WIIINNNN')
-        # bot_msg('Blaze','WIIINNN')
-        while True:
-            try:
-                #bot_telegram.send_message('-749878368', 'WIIINNN')
-                bot_telegram.send_photo('-749878368', photo=open('Green.png', 'rb'))
-                break
-            except Exception as e:
-                print('Erro:', e)
-        win += 1
-        print('WIINN')
-    else:
-        # desktop_notification('Vamos para a primeira gale. \nDobre a aposta e repita a cor')
-        # bot_msg('Blaze', 'Vamos para a primeira gale. \nDobre a aposta e repita a cor')
-        while True:
-            try:
-                bot_telegram.send_message('-749878368', '\u26a0\ufe0f \u26a0\ufe0f \u26a0\ufe0f \u26a0\ufe0f  \nVamos para a primeira gale. \nDobre a aposta e repita a cor')
-                
-                break
-            except Exception as e:
-                print('Erro:', e)
-        print('Primeira gale')
-
-        sleep(1)
-        while True:
-            new_list = request()
-            if list != new_list:
-                list = new_list
-                break
-
-        if list[0]['color'] == list[1]['color']:
-            prim_gale += 1
-            # desktop_notification('WIIINNNN')
-            # bot_msg('Blaze', 'WIIINNN')
-            while True:
-                try:
-                    #bot_telegram.send_message('-749878368', '\u2705 \u2705 \u2705 \u2705 \nWIIINNN')
-                    bot_telegram.send_photo('-749878368', photo=open('Green.png', 'rb'))
-                    break
-                except Exception as e:
-                    print('Erro:', e)
-            win += 1
-            print('WINN')
+        if num[0:1] >= [8] and num[0:1] <= [14] and bd.direction_color == '⚫️':#win preto
             
-        else:
-            sleep(1)
-            # desktop_notification('Vamos para a segunda gale. \nDobre a aposta e repita a cor.')
-            # bot_msg('Blaze', 'Vamos para a segunda gale. \nDobre a aposta e repita a cor.')
-            while True:
-                try:
-                    bot_telegram.send_message('-749878368', '\u26a0\ufe0f \u26a0\ufe0f \u26a0\ufe0f \u26a0\ufe0f \nVamos para a segunda gale. \nDobre a aposta e repita a cor.')
-                    break
-                except Exception as e:
-                    print('Erro:', e)
-            print('Segunda gale')
+            if bd.gale_atual == 0:
+                print('⚫️SEM GALE✅')
+                bd.win += 1
+                bd.total += 1
+                bd.Win_seguidos += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbpRjYo4j83Mjb4H1NAIhkgujP39G5wACgQIAApk7GUcomhxuxVEycCoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                            
+                            \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
 
-            while True:
-                new_list = request()
-                if list != new_list:
-                    list = new_list
-                    break
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
 
-            if list[0]['color'] == list[1]['color']:
-                # desktop_notification('WIIINNNN')
-                # bot_msg('Blaze', 'WIIINNN')
-                while True:
-                    try:
-                        #bot_telegram.send_message('-749878368', '\u2705 \u2705 \u2705 \u2705 \nWIIINNN')
-                        bot_telegram.send_photo('-749878368', photo=open('Green.png', 'rb'))
-                        break
-                    except Exception as e:
-                        print('Erro:', e)
-                seg_gale += 1
-                win += 1
-                print('WINN')
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                            ''')
+                reset()
+                return  
+
+            if bd.gale_atual == 1:
+                print('⚫️GALE1✅')
+                bd.gale1 += 1
+                bd.total += 1
+                bd.Win_seguidos += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbpRjYo4j83Mjb4H1NAIhkgujP39G5wACgQIAApk7GUcomhxuxVEycCoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                            
+                            \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                            ''')
+                reset()
+                return     
+
+            if bd.gale_atual == 2:
+                print('⚫️GALE2✅')
+                bd.gale2 += 1
+                bd.total += 1
+                bd.Win_seguidos += 1
+                bd.divisao = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * bd.divisao
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbpRjYo4j83Mjb4H1NAIhkgujP39G5wACgQIAApk7GUcomhxuxVEycCoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                            
+                            \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                            ''')
+                reset()
+                return  
+
+        if num[0:1] >= [8] and num[0:1] <= [14] and bd.direction_color == '🔴':#loss vermelho
+            
+            if bd.gale_atual == 0:
+                print('NÃO FOI NESSA COR ❌ ')
+                bd.gale_atual += 1
+                ALERT_GALE1()
+                time.sleep(5)
+                DELET_GALE1()
+                return           
+
+            if bd.gale_atual == 1:
+                print('NÃO FOI NESSA COR G1❌')
+                bd.gale_atual += 1
+                ALERT_GALE2()
+                time.sleep(5)
+                DELET_GALE2()
+                return
+
+            if bd.gale_atual == 2:
+                print('NÃO FOI NESSA COR❌LOSS❌')
+                bd.loss += 1
+                bd.Win_seguidos = 0
+                b = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * b
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbqBjYo-wYUlAGqeGkha3l42e-zIpugACMgIAAtIkEEeoS-We4CpX1CoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                        
+                        \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                        ''')
+                reset()
+                return
+
+        if num[0:1] > [0] and num[0:1] <= [7] and bd.direction_color == '⚫️':#loss preto
+            
+            if bd.gale_atual == 0:
+                print('NÃO FOI NESSA COR ❌')
+                bd.gale_atual += 1
+                ALERT_GALE1()
+                time.sleep(5)
+                DELET_GALE1()
+                return      
+
+            if bd.gale_atual == 1:
+                print('NÃO FOI NESSA COR G1❌')
+                bd.gale_atual += 1
+                ALERT_GALE2()
+                time.sleep(5)
+                DELET_GALE2()
+                
+                return
+
+            if bd.gale_atual == 2:
+                print('NÃO FOI NESSA COR G2❌LOSS❌')
+                bd.loss += 1
+                b = bd.win + bd.branco + bd.gale1 + bd.gale2 
+                if (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) != 0:
+                    a = 100 / (bd.win + bd.branco + bd.gale1 + bd.gale2 + bd.loss) * b
+                else:
+                    a = 0
+                bd.porcentagem = (f'{a:,.2f}%')
+                bot.send_sticker(chat_id, 
+                sticker='CAACAgEAAxkBAAEBbqBjYo-wYUlAGqeGkha3l42e-zIpugACMgIAAtIkEEeoS-We4CpX1CoE')
+                bot.send_message(chat_id=chat_id, text=f'''
+                        
+                        \n 
+    ⬇️CONTAGEM AUTOWIN🔴⚫️⚪️⬇️
+
+    ✅:{bd.win} / ❌:{bd.loss} / 🏆TOTAL:{bd.total} / ⚪️:{bd.branco}
+    🐔1:{bd.gale1} / 🐔2:{bd.gale2} / 🎯:{bd.porcentagem}
+
+    ESTAMOS➡️ {bd.Win_seguidos} ⬅️ GREEN SEGUIDOS 🤑🤑
+                        ''')
+                reset()
+                return
+
+    very_gale(bd.finalnum)
+    return
+    
+while True:
+
+    try:
+        resulROOL = nav.find_element(By.XPATH, '//*[@id="roulette-timer"]/div[1]').text
+    except NameError as erro:
+        continue
+    except Exception as erro:
+        continue 
+
+    
+
+    bd.analisar_open = 0
+    if resulROOL == 'Girando...':
+        bd.analisar_open = 1
+        print('Girando...')
+        time.sleep(13)
+        c = nav.page_source
+        bd.resultsDouble.clear()
+    
+        soup = BeautifulSoup(c, 'html.parser')
+        go = soup.find('div', class_="entries main")
+        for i in go:
+            if i.getText():
+                bd.resultsDouble.append(i.getText())
             else:
-                # desktop_notification('Loss')
-                # bot_msg('Blaze', 'Loss')
-                while True:
-                    try:
-                        #bot_telegram.send_message('-749878368', '\u274c \u274c \u274c \u274c \nLoss')
-                        bot_telegram.send_photo('-749878368', photo=open('Loss.png', 'rb'))
-                        break
-                    except Exception as e:
-                        print('Erro:', e)
-                loss += 1
-                print('loss')
+                bd.resultsDouble.append('0')    
 
-    sleep(2)
-    time = datetime.now()
-    count(time, win, loss, prim_tent, prim_gale, seg_gale,bot_telegram)
+        bd.resultsDouble = bd.resultsDouble[:-1]   
+        print(bd.resultsDouble)
 
-    while True:
-        new_list = request()
-        if list != new_list:
-            main_request(bot_telegram)
+        if bd.analisar_open == 1:
+
+            default = bd.resultsDouble[0:10] 
+            
+            mapeando = map(qualnum, default)
+            mapeando2 = map(qualcor, default)
+            bd.finalnum = list(mapeando)
+            bd.finalcor = list(mapeando2)
+            print(bd.finalcor)
+            #print(bd.finalnum[0:1])
+            depois_nu = bd.finalnum[0:1][0]
+            depois_cor = bd.finalcor[0:1][0]
+            
+            
+
+                    
+       
+        if bd.estrategy_name == 'TRUE' or bd.estrategy_name == 'E1':#padrao com cores 4
+            def CHECK_VERSION(num):
+                
+
+                if bd.analisar == 0:#padrao com cores 4 / ⚠️AS CORES TEM QUE ESTA DE TRAS PARA FRENTE 
+                    
+                              
+                    if num[0:2] == ['🔴', '🔴']:#1
+                        print('🎯ENTRADA ENVIADA✅')
+                        bd.estrategy_name = 'E1'
+                        bd.direction_color = '⚫️'
+                        bd.analisar = 1
+                        
+                        def button_link():
+
+                            markup = InlineKeyboardMarkup()
+
+                            markup.row_width = 2
+
+                            markup.add(InlineKeyboardButton(text="APOSTAR NO ➡️⚫️ ",url="https://blaze.com/pt/games/double"))
+                            markup.add(InlineKeyboardButton(text="PROTEÇÃO NO ➡️⚪️ ",url="https://blaze.com/pt/games/double"))
+                            return markup
+                            
+                        bot.send_message(chat_id=chat_id, text=(f'''
+🔴⚫️⚪️AUTOWIN🔴⚫️⚪️ 
+
+🎯ENTRAR ➡️ ⚫️+⚪️
+
+🎯APÓS➡️ {depois_cor}{depois_nu}
+
+                 
+                         
+                        '''),
+                        reply_markup=button_link())
+                        
+                        return
+                    
+                    if num[0:2] == ['⚫️', '⚫️']:#10
+                        print('🎯ENTRADA ENVIADA✅')
+                        bd.estrategy_name = 'E1'
+                        bd.direction_color = '🔴'                  
+                        bd.analisar = 1
+                        def button_link():
+
+                            markup = InlineKeyboardMarkup()
+
+                            markup.row_width = 2
+
+                            markup.add(InlineKeyboardButton(text="APOSTAR NO ➡️🔴 ",url="https://blaze.com/pt/games/double"))
+                            markup.add(InlineKeyboardButton(text="PROTEÇÃO NO ➡️⚪️ ",url="https://blaze.com/pt/games/double"))
+
+                            return markup
+                        bot.send_message(chat_id=chat_id, text=(f'''
+🔴⚫️⚪️AUTOWIN🔴⚫️⚪️
+
+🎯ENTRAR ➡️ 🔴+⚪️
+
+🎯APÓS➡️ {depois_cor}{depois_nu}
 
 
+                         
+                        '''),
+                        reply_markup=button_link())
+                        
+                        return
 
-# Cor 2 = Preto | Cor 1 = Vermelho | Cor 0 - Branco
+                elif bd.analisar == 1:
+                    martingales()
+                    return                                                                     
+            CHECK_VERSION(bd.finalcor) 
+
+        if bd.estrategy_name == 'TRUE':#alerta de sinal
+            def CHECK_VERSION(num):
+                    if bd.analisar == 0:
+
+                       
+                        if num[0:2] == ['🔴', '🔴']:
+                            print('🎯ALERTA DE ENTRADA✅')
+                            possivel_entrada()
+                            time.sleep(5)
+                            deletar_alertas()
+                            return     
+                    
+                        if num[0:2] == ['⚫️', '⚫️']:
+                            print('🎯ALERTA DE ENTRADA✅')
+                            possivel_entrada()
+                            time.sleep(5)
+                            deletar_alertas()
+                            return     
+
+                        
+                    
+            CHECK_VERSION(bd.finalcor)
+       
